@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PORT LEAVE SYSTEM</title>
     
-    <!-- External Resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
@@ -21,7 +20,6 @@
             --bg-dark: #020617;
         }
 
-        /* Thai Font Guard */
         * {
             font-family: 'Prompt', 'Tahoma', 'Leelawadee UI', sans-serif !important;
             -webkit-font-smoothing: antialiased;
@@ -54,7 +52,6 @@
         .neon-text-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 243, 255, 0.5); }
         .neon-text-yellow { color: var(--neon-yellow); text-shadow: 0 0 10px rgba(243, 255, 0, 0.5); }
 
-        /* Hidden Input for Keyboard Logic */
         .admin-pin-input {
             position: absolute;
             opacity: 0;
@@ -86,7 +83,6 @@
 </head>
 <body class="p-4">
 
-    <!-- App Header -->
     <header class="w-full max-w-md mt-6 mb-8 text-center">
         <div class="inline-block p-4 rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-700 shadow-xl mb-4 border border-white/20">
             <i class="fas fa-fingerprint text-3xl text-white"></i>
@@ -97,7 +93,6 @@
 
     <main class="w-full max-w-md">
         
-        <!-- Login UI -->
         <section id="ui-login" class="glass-panel p-8 text-center">
             <h2 class="text-xl font-bold mb-2">เข้าสู่ระบบ</h2>
             <p class="text-xs opacity-50 mb-8">กรุณากรอกรหัสพนักงานของคุณ</p>
@@ -113,12 +108,16 @@
                 </button>
             </div>
 
+            <div id="db-date-display" class="mt-8 text-[10px] opacity-40 flex items-center justify-center gap-2">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลล่าสุด: ยังไม่มีข้อมูล</span>
+            </div>
+
             <div id="login-err" class="mt-6 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 hidden text-xs">
                 ไม่พบรหัสพนักงานนี้ในระบบ
             </div>
         </section>
 
-        <!-- Dashboard UI -->
         <section id="ui-dash" class="hidden space-y-4">
             <div class="glass-panel p-6 border-l-8 border-cyan-400">
                 <div class="flex justify-between items-start">
@@ -137,7 +136,6 @@
                 </div>
             </div>
 
-            <!-- Leave Wheel -->
             <div class="glass-panel p-8 text-center border-t-2 border-yellow-400">
                 <p class="text-[10px] font-bold text-yellow-400 mb-6 tracking-widest uppercase">วันลาพักผ่อนคงเหลือ</p>
                 <div class="relative w-40 h-40 mx-auto">
@@ -154,7 +152,6 @@
                 </div>
             </div>
 
-            <!-- Stat Grid -->
             <div class="grid grid-cols-2 gap-3">
                 <div class="glass-panel p-4"><p class="text-[9px] opacity-50 uppercase mb-1">ยกมา</p><p class="text-lg font-bold" id="view-carry">0</p></div>
                 <div class="glass-panel p-4"><p class="text-[9px] opacity-50 uppercase mb-1">ปีนี้</p><p class="text-lg font-bold" id="view-quota">0</p></div>
@@ -163,7 +160,6 @@
             </div>
         </section>
 
-        <!-- Admin Console Trigger -->
         <div class="mt-12 text-center">
             <button onclick="showAdminAuth()" class="opacity-20 hover:opacity-100 transition-opacity p-2 text-[9px] orbitron tracking-[0.4em]">
                 <i class="fas fa-lock mr-2"></i> ADMIN CONSOLE
@@ -171,26 +167,19 @@
         </div>
     </main>
 
-    <!-- Admin Authentication Modal (Keyboard Driven) -->
     <div id="modal-auth" class="fixed inset-0 bg-slate-950/95 z-[9999] hidden items-center justify-center p-6" onclick="focusAdminInput()">
         <div id="auth-card" class="w-full max-w-xs text-center glass-panel p-10">
             <h3 class="orbitron text-[10px] tracking-widest mb-10 text-cyan-400">ENTER 6-DIGIT ADMIN PASSCODE</h3>
-            
-            <!-- Hidden Input to catch keyboard events -->
             <input type="password" id="adminInput" maxlength="6" inputmode="numeric" class="admin-pin-input" oninput="handleAdminInput(this)">
-
-            <!-- Visual Representation of PIN -->
             <div class="flex justify-center gap-4 mb-10">
                 <div class="dot"></div><div class="dot"></div><div class="dot"></div>
                 <div class="dot"></div><div class="dot"></div><div class="dot"></div>
             </div>
-
             <p class="text-[9px] opacity-30 orbitron">TYPE ON YOUR KEYBOARD</p>
             <button onclick="hideAdminAuth()" class="mt-8 text-pink-500 text-[10px] orbitron tracking-widest">CANCEL</button>
         </div>
     </div>
 
-    <!-- Admin Panel Modal -->
     <div id="modal-admin" class="fixed inset-0 bg-slate-950 z-[10000] hidden overflow-y-auto p-6">
         <div class="max-w-md mx-auto py-8">
             <div class="flex justify-between items-center mb-8">
@@ -200,7 +189,12 @@
 
             <div class="glass-panel p-8 text-center border-2 border-dashed border-cyan-500/30 mb-6">
                 <i class="fas fa-cloud-upload-alt text-4xl text-cyan-400 mb-4"></i>
-                <h4 class="text-lg font-bold mb-4">อัปเดตข้อมูล (Excel)</h4>
+                <h4 class="text-lg font-bold mb-2">อัปเดตข้อมูล (Excel)</h4>
+                
+                <div id="admin-last-update" class="text-[9px] orbitron text-cyan-400/60 mb-6 uppercase tracking-widest">
+                    Last Update: None
+                </div>
+
                 <input type="file" id="xlsx-input" accept=".xlsx, .xls" class="hidden" onchange="readXlsx(this)">
                 <button onclick="document.getElementById('xlsx-input').click()" class="w-full py-4 bg-cyan-600 rounded-2xl font-bold orbitron shadow-lg">
                     SELECT EXCEL FILE
@@ -225,19 +219,29 @@
     </div>
 
     <script>
-        const PIN = "123456"; // Default Admin Pin
+        const PIN = "123456"; 
         let db = [];
+        let lastUpdateDate = "";
 
         window.onload = () => {
             const saved = localStorage.getItem('port_leave_db');
+            const savedDate = localStorage.getItem('port_leave_update');
+            
             if (saved) {
                 db = JSON.parse(saved);
+                lastUpdateDate = savedDate || "ไม่พบข้อมูล";
             } else {
-                // Initial Sample Data
                 db = [{ id: '33326', name: 'นายถาวร เสียงล้ำเลิศ', pos: 'ผู้ช่วยหัวหน้าแผนก', dept: 'แผนกโรงพักสินค้า 9', carry: 15, quota: 15, total: 30, used: 0, remain: 30 }];
+                lastUpdateDate = "ข้อมูลตัวอย่าง";
             }
-            updateCountDisplay();
+            updateDisplays();
         };
+
+        function updateDisplays() {
+            document.getElementById('data-count').innerText = db.length;
+            document.getElementById('db-date-display').innerHTML = `<i class="fas fa-database"></i> <span>ฐานข้อมูลล่าสุด: ${lastUpdateDate}</span>`;
+            document.getElementById('admin-last-update').innerText = `Last Update: ${lastUpdateDate}`;
+        }
 
         function doSearch() {
             const val = document.getElementById('empInput').value.trim();
@@ -257,7 +261,6 @@
         function showDashboard(emp) {
             document.getElementById('ui-login').classList.add('hidden');
             document.getElementById('ui-dash').classList.remove('hidden');
-            
             document.getElementById('view-name').innerText = emp.name;
             document.getElementById('view-pos').innerText = emp.pos;
             document.getElementById('view-id').innerText = `ID: ${emp.id}`;
@@ -267,7 +270,6 @@
             document.getElementById('view-quota').innerText = emp.quota;
             document.getElementById('view-total').innerText = emp.total;
             document.getElementById('view-used').innerText = emp.used;
-
             const ring = document.getElementById('ring-remain');
             const pct = emp.total > 0 ? (emp.remain / emp.total) : 0;
             ring.style.strokeDashoffset = 440 - (pct * 440);
@@ -280,7 +282,6 @@
             document.getElementById('ring-remain').style.strokeDashoffset = 440;
         }
 
-        // --- ADMIN AUTH LOGIC (KEYBOARD DRIVEN) ---
         function showAdminAuth() {
             const input = document.getElementById('adminInput');
             input.value = "";
@@ -289,18 +290,12 @@
             setTimeout(() => input.focus(), 100);
         }
 
-        function hideAdminAuth() {
-            document.getElementById('modal-auth').style.display = 'none';
-        }
-
-        function focusAdminInput() {
-            document.getElementById('adminInput').focus();
-        }
+        function hideAdminAuth() { document.getElementById('modal-auth').style.display = 'none'; }
+        function focusAdminInput() { document.getElementById('adminInput').focus(); }
 
         function handleAdminInput(el) {
             const val = el.value;
             updateAdminDots(val);
-
             if (val.length === 6) {
                 if (val === PIN) {
                     setTimeout(() => {
@@ -323,9 +318,7 @@
             dots.forEach((d, i) => d.classList.toggle('filled', i < val.length));
         }
 
-        // --- DATABASE LOGIC ---
         function closeAdmin() { document.getElementById('modal-admin').style.display = 'none'; }
-        function updateCountDisplay() { document.getElementById('data-count').innerText = db.length; }
 
         function readXlsx(input) {
             const file = input.files[0];
@@ -347,7 +340,6 @@
                             startIdx = i + 1; break;
                         }
                     }
-
                     if (startIdx === -1) throw new Error("Header Not Found");
 
                     const num = (v) => {
@@ -367,8 +359,15 @@
                         remain: num(r[11])
                     }));
 
+                    // บันทึกวันที่อัปเดต
+                    const now = new Date();
+                    const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+                    lastUpdateDate = `${now.getDate()} ${thaiMonths[now.getMonth()]} ${now.getFullYear() + 543} (${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} น.)`;
+
                     localStorage.setItem('port_leave_db', JSON.stringify(db));
-                    updateCountDisplay();
+                    localStorage.setItem('port_leave_update', lastUpdateDate);
+                    
+                    updateDisplays();
                     status.innerHTML = `<span class="text-green-400">DATABASE UPDATED SUCCESSFULLY</span>`;
                     setTimeout(() => status.innerText = "", 3000);
                 } catch (err) {
@@ -381,6 +380,7 @@
         function clearData() {
             if (confirm("ต้องการล้างข้อมูลทั้งหมด?")) {
                 localStorage.removeItem('port_leave_db');
+                localStorage.removeItem('port_leave_update');
                 location.reload();
             }
         }
