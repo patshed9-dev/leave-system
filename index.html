@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบตรวจสอบวันลาคงเหลือ - Futuristic UI</title>
+    <title>PORT LEAVE SYSTEM</title>
+    
+    <!-- External Resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- SheetJS for Excel processing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Prompt:wght@300;400;600&display=swap');
 
+    <style>
         :root {
             --neon-blue: #00f3ff;
             --neon-pink: #ff00ff;
@@ -18,463 +21,367 @@
             --bg-dark: #020617;
         }
 
+        /* Thai Font Guard */
+        * {
+            font-family: 'Prompt', 'Tahoma', 'Leelawadee UI', sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            box-sizing: border-box;
+        }
+
+        .orbitron { font-family: 'Orbitron', sans-serif !important; }
+
         body {
             background-color: var(--bg-dark);
             color: white;
-            font-family: 'Prompt', sans-serif;
             background-image: 
-                radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 50% 100%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+                radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 50% 100%, rgba(255, 0, 255, 0.08) 0%, transparent 50%);
             min-height: 100vh;
             margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .orbitron { font-family: 'Orbitron', sans-serif; }
-        h1, h2, h3 { font-weight: 600; letter-spacing: -0.01em; }
-        
         .glass-panel {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(0, 243, 255, 0.15);
-            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
-            border-radius: 28px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.9);
+            border-radius: 30px;
         }
 
-        .neon-text-blue { color: var(--neon-blue); text-shadow: 0 0 12px rgba(0, 243, 255, 0.4); }
-        .neon-text-yellow { color: var(--neon-yellow); text-shadow: 0 0 12px rgba(243, 255, 0, 0.4); }
-        .neon-text-pink { color: var(--neon-pink); text-shadow: 0 0 12px rgba(255, 0, 255, 0.4); }
-        
-        .glow-button {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-        .glow-button:active { transform: scale(0.95); }
+        .neon-text-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 243, 255, 0.5); }
+        .neon-text-yellow { color: var(--neon-yellow); text-shadow: 0 0 10px rgba(243, 255, 0, 0.5); }
 
-        #adminPanel, #dashboard, #adminAuth { display: none; }
-
-        input {
-            background: rgba(0, 0, 0, 0.3) !important;
-            border: 2px solid rgba(0, 243, 255, 0.2) !important;
-            color: white !important;
-            font-size: 1.5rem !important;
-        }
-        
-        input:focus {
-            border-color: var(--neon-blue) !important;
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
-        }
-
-        .scan-line {
+        /* Hidden Input for Keyboard Logic */
+        .admin-pin-input {
             position: absolute;
-            width: 100%;
-            height: 3px;
-            background: var(--neon-blue);
-            box-shadow: 0 0 20px var(--neon-blue);
-            top: 0;
-            animation: scan 4s linear infinite;
-            opacity: 0.6;
-            pointer-events: none;
+            opacity: 0;
+            top: -100px;
         }
 
-        @keyframes scan {
-            0% { top: 0%; }
-            50% { top: 100%; }
-            100% { top: 0%; }
-        }
-
-        .progress-circle { transition: stroke-dashoffset 1.2s ease-out; }
-
-        /* Admin UI Modal */
-        .admin-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.95);
-            z-index: 100;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        /* Passcode input styling */
-        .passcode-dot {
-            width: 15px;
-            height: 15px;
+        .dot {
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             border: 2px solid var(--neon-blue);
-            display: inline-block;
-            margin: 0 8px;
+            transition: 0.3s;
         }
-        .passcode-dot.active {
+        .dot.filled {
             background: var(--neon-blue);
-            box-shadow: 0 0 10px var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue);
+            transform: scale(1.2);
         }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
         }
-        .animate-shake { animation: shake 0.3s ease-in-out; }
+        .shake { animation: shake 0.3s ease-in-out; }
+
+        .progress-ring { transition: stroke-dashoffset 0.8s ease-out; }
     </style>
 </head>
-<body class="p-4 sm:p-6">
+<body class="p-4">
 
-    <header class="max-w-md mx-auto pt-8 pb-6 flex flex-col items-center gap-4">
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg relative overflow-hidden">
-            <i class="fas fa-id-card text-2xl text-white z-10"></i>
-            <div class="scan-line"></div>
+    <!-- App Header -->
+    <header class="w-full max-w-md mt-6 mb-8 text-center">
+        <div class="inline-block p-4 rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-700 shadow-xl mb-4 border border-white/20">
+            <i class="fas fa-fingerprint text-3xl text-white"></i>
         </div>
-        <div class="text-center">
-            <h1 class="orbitron text-lg font-bold tracking-[0.2em] neon-text-blue">PORT LEAVE</h1>
-            <p class="text-[10px] opacity-40 orbitron tracking-widest uppercase">Personnel Access Terminal</p>
-        </div>
+        <h1 class="orbitron text-xl font-bold tracking-[0.3em] neon-text-blue">PORT LEAVE</h1>
+        <p class="text-[9px] opacity-40 orbitron tracking-[0.5em] uppercase mt-1">Personnel Access Terminal</p>
     </header>
 
-    <main class="max-w-md mx-auto pb-24">
+    <main class="w-full max-w-md">
         
-        <!-- Login Section -->
-        <section id="loginSection" class="glass-panel p-8 text-center relative overflow-hidden">
-            <h2 class="text-2xl font-semibold mb-2">ตรวจสอบวันลา</h2>
-            <p class="text-sm opacity-60 mb-8 font-light">ระบุรหัสพนักงานของท่าน</p>
+        <!-- Login UI -->
+        <section id="ui-login" class="glass-panel p-8 text-center">
+            <h2 class="text-xl font-bold mb-2">เข้าสู่ระบบ</h2>
+            <p class="text-xs opacity-50 mb-8">กรุณากรอกรหัสพนักงานของคุณ</p>
             
             <div class="space-y-6">
-                <input type="number" id="empIdInput" pattern="\d*" placeholder="รหัสพนักงาน" 
-                    onkeyup="if(event.key === 'Enter') searchEmployee()"
-                    class="w-full py-5 px-4 rounded-2xl text-center orbitron font-bold tracking-widest">
+                <input type="text" id="empInput" inputmode="numeric" placeholder="รหัสพนักงาน" 
+                    onkeyup="if(event.key==='Enter') doSearch()"
+                    class="w-full py-4 px-4 rounded-2xl orbitron font-bold text-center tracking-[0.2em] text-2xl bg-black/40 border-2 border-cyan-500/30 text-white focus:border-cyan-400 outline-none">
                 
-                <button onclick="searchEmployee()" 
-                    class="w-full py-5 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-lg glow-button shadow-cyan-500/20 shadow-xl">
-                    ยืนยันตัวตน
+                <button onclick="doSearch()" 
+                    class="w-full py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-lg transition-all shadow-lg active:scale-95">
+                    ตรวจสอบข้อมูล
                 </button>
             </div>
 
-            <div id="errorMsg" class="mt-6 p-3 bg-pink-500/10 border border-pink-500/30 rounded-xl text-pink-500 hidden text-sm">
-                <i class="fas fa-search-minus mr-2"></i> ไม่พบรหัสพนักงานในระบบ
+            <div id="login-err" class="mt-6 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 hidden text-xs">
+                ไม่พบรหัสพนักงานนี้ในระบบ
             </div>
         </section>
 
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="space-y-4">
-            <div class="glass-panel p-6 border-l-4 border-l-cyan-400">
+        <!-- Dashboard UI -->
+        <section id="ui-dash" class="hidden space-y-4">
+            <div class="glass-panel p-6 border-l-8 border-cyan-400">
                 <div class="flex justify-between items-start">
-                    <div class="flex-1">
-                        <p class="text-[10px] orbitron text-cyan-400 mb-1 uppercase">Personnel Status</p>
-                        <h3 id="display-name" class="text-2xl font-bold mb-1">---</h3>
-                        <p id="display-pos" class="text-sm opacity-60 font-light mb-4 text-balance">---</p>
-                        <div class="flex flex-col gap-2">
-                            <div class="flex items-center text-xs opacity-80"><i class="fas fa-building w-5 text-cyan-500"></i><span id="display-dept">---</span></div>
-                            <div class="flex items-center text-xs orbitron text-cyan-400"><i class="fas fa-fingerprint w-5"></i><span id="display-id">ID: ---</span></div>
+                    <div>
+                        <p class="text-[9px] orbitron text-cyan-400 mb-1 font-bold">VERIFIED USER</p>
+                        <h3 id="view-name" class="text-xl font-bold mb-1">---</h3>
+                        <p id="view-pos" class="text-[11px] opacity-60">---</p>
+                        <div class="mt-4 flex flex-wrap gap-4 text-[9px] opacity-80">
+                            <span><i class="fas fa-id-badge mr-1 text-cyan-400"></i> <span id="view-id">---</span></span>
+                            <span><i class="fas fa-map-marker-alt mr-1 text-cyan-400"></i> <span id="view-dept">---</span></span>
                         </div>
                     </div>
-                    <button onclick="logout()" class="p-3 rounded-xl bg-white/5 text-pink-500"><i class="fas fa-power-off"></i></button>
-                </div>
-            </div>
-
-            <div class="glass-panel p-8 text-center border-t-2 border-t-yellow-400">
-                <p class="text-sm font-semibold text-yellow-400 mb-6 uppercase">วันลาพักผ่อนคงเหลือ</p>
-                <div class="relative w-56 h-56 mx-auto">
-                    <svg class="w-full h-full transform -rotate-90">
-                        <circle cx="112" cy="112" r="100" stroke="#0f172a" stroke-width="8" fill="transparent" />
-                        <circle id="main-circle" cx="112" cy="112" r="100" stroke="currentColor" stroke-width="12" fill="transparent" 
-                            stroke-dasharray="628.3" stroke-dashoffset="628.3"
-                            class="text-yellow-400 progress-circle" stroke-linecap="round" />
-                    </svg>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <span id="display-remain" class="text-6xl font-bold orbitron neon-text-yellow">0</span>
-                        <span class="text-xs opacity-50 font-bold mt-1">วันคงเหลือ</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="glass-panel p-5"><p class="text-[11px] opacity-60 mb-1">ยกมา</p><p class="text-xl font-bold"><span id="display-carry">0</span> <span class="text-[10px] opacity-40">วัน</span></p></div>
-                <div class="glass-panel p-5"><p class="text-[11px] opacity-60 mb-1">สิทธิ์ปีนี้</p><p class="text-xl font-bold"><span id="display-quota">0</span> <span class="text-[10px] opacity-40">วัน</span></p></div>
-                <div class="glass-panel p-5"><p class="text-[11px] opacity-60 mb-1">รวมทั้งสิ้น</p><p class="text-xl font-bold"><span id="display-total">0</span> <span class="text-[10px] opacity-40">วัน</span></p></div>
-                <div class="glass-panel p-5"><p class="text-[11px] text-pink-500 mb-1">ใช้ไปแล้ว</p><p class="text-xl font-bold text-pink-500"><span id="display-used">0</span> <span class="text-[10px] opacity-40 text-white">วัน</span></p></div>
-            </div>
-        </section>
-
-        <!-- Admin Control (Floating Button) -->
-        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-            <button onclick="requestAdminAccess()" class="bg-gray-800/80 backdrop-blur border border-white/10 px-6 py-3 rounded-full text-[10px] orbitron tracking-[0.2em] opacity-40 hover:opacity-100 hover:scale-105 transition-all">
-                <i class="fas fa-lock mr-2"></i> Admin Terminal
-            </button>
-        </div>
-    </main>
-
-    <!-- Admin Authentication (Passcode) -->
-    <div id="adminAuth" class="admin-modal flex items-center justify-center">
-        <div class="text-center w-full max-w-xs">
-            <i class="fas fa-shield-alt text-5xl neon-text-blue mb-6"></i>
-            <h2 class="orbitron text-xl font-bold mb-2">ADMIN ACCESS</h2>
-            <p class="text-sm opacity-50 mb-8">กรุณากรอกรหัสผ่าน 4 หลัก</p>
-            
-            <div id="passcode-dots" class="mb-10">
-                <div class="passcode-dot"></div>
-                <div class="passcode-dot"></div>
-                <div class="passcode-dot"></div>
-                <div class="passcode-dot"></div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4">
-                {[1,2,3,4,5,6,7,8,9].map(n => `<button onclick="enterDigit('${n}')" class="w-16 h-16 rounded-full bg-white/5 border border-white/10 text-2xl orbitron hover:bg-cyan-500 hover:text-black transition-all mx-auto">${n}</button>`).join('')}
-                <button onclick="clearPasscode()" class="w-16 h-16 rounded-full bg-pink-500/10 text-pink-500 text-xl flex items-center justify-center mx-auto"><i class="fas fa-backspace"></i></button>
-                <button onclick="enterDigit('0')" class="w-16 h-16 rounded-full bg-white/5 border border-white/10 text-2xl orbitron hover:bg-cyan-500 hover:text-black transition-all mx-auto">0</button>
-                <button onclick="toggleAdminAuth(false)" class="w-16 h-16 rounded-full bg-white/5 text-white/40 text-sm orbitron mx-auto uppercase">Exit</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Admin Terminal Modal (Main) -->
-    <div id="adminPanel" class="admin-modal">
-        <div class="max-w-md mx-auto space-y-6 pt-10">
-            <div class="flex justify-between items-center">
-                <h2 class="text-2xl orbitron neon-text-yellow font-bold">ADMIN SETTINGS</h2>
-                <button onclick="toggleAdminPanel(false)" class="text-white text-3xl p-2">&times;</button>
-            </div>
-
-            <!-- Upload Zone -->
-            <div class="glass-panel p-8 text-center border-2 border-dashed border-cyan-500/30">
-                <i class="fas fa-file-excel text-5xl text-green-500 mb-4"></i>
-                <h3 class="text-lg font-bold mb-2">อัปโหลดไฟล์วันลา (Excel)</h3>
-                <p class="text-xs opacity-60 mb-6 leading-relaxed">ข้อมูลจะถูกเขียนทับทันที<br>โปรดตรวจสอบความถูกต้องของไฟล์</p>
-                
-                <input type="file" id="excelFile" accept=".xlsx, .xls" class="hidden" onchange="handleFile(this)">
-                <button onclick="document.getElementById('excelFile').click()" class="w-full py-4 bg-cyan-600 rounded-2xl font-bold orbitron shadow-lg shadow-cyan-500/20">
-                    SELECT EXCEL FILE
-                </button>
-                <p id="fileNameDisplay" class="mt-4 text-xs text-cyan-400"></p>
-            </div>
-
-            <!-- Data Status -->
-            <div class="glass-panel p-6">
-                <h3 class="text-xs orbitron mb-4 opacity-70 tracking-widest">SYSTEM DATA SUMMARY</h3>
-                <div class="flex justify-between items-center text-sm py-2 border-b border-white/5">
-                    <span class="opacity-60">จำนวนพนักงานทั้งหมด:</span>
-                    <span id="admin-count" class="font-bold text-cyan-400 text-lg">0</span>
-                </div>
-                <div class="flex justify-between items-center text-sm py-2">
-                    <span class="opacity-60">แหล่งข้อมูล:</span>
-                    <span id="data-source" class="font-bold text-yellow-500">LOCAL STORAGE</span>
-                </div>
-                
-                <div class="mt-8 grid grid-cols-1 gap-4">
-                    <button onclick="clearDatabase()" class="w-full py-4 text-xs text-pink-500 border border-pink-500/30 rounded-xl hover:bg-pink-500 hover:text-white transition-all orbitron">
-                        WIPE DATABASE (RESET)
+                    <button onclick="doLogout()" class="w-10 h-10 rounded-xl bg-pink-500/10 text-pink-500 hover:bg-pink-500 hover:text-white transition-all flex items-center justify-center">
+                        <i class="fas fa-power-off"></i>
                     </button>
                 </div>
             </div>
 
-            <div class="text-center opacity-30 text-[10px] orbitron pb-20">
-                ENCRYPTED TERMINAL LINK: EST-2026-PORT
+            <!-- Leave Wheel -->
+            <div class="glass-panel p-8 text-center border-t-2 border-yellow-400">
+                <p class="text-[10px] font-bold text-yellow-400 mb-6 tracking-widest uppercase">วันลาพักผ่อนคงเหลือ</p>
+                <div class="relative w-40 h-40 mx-auto">
+                    <svg class="w-full h-full transform -rotate-90">
+                        <circle cx="80" cy="80" r="70" stroke="rgba(255,255,255,0.05)" stroke-width="8" fill="transparent" />
+                        <circle id="ring-remain" class="progress-ring" cx="80" cy="80" r="70" stroke="currentColor" stroke-width="10" fill="transparent" 
+                            stroke-dasharray="440" stroke-dashoffset="440"
+                            class="text-yellow-400" stroke-linecap="round" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span id="view-remain" class="text-5xl font-bold orbitron neon-text-yellow">0</span>
+                        <span class="text-[9px] opacity-40 font-bold uppercase mt-1">Days</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stat Grid -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="glass-panel p-4"><p class="text-[9px] opacity-50 uppercase mb-1">ยกมา</p><p class="text-lg font-bold" id="view-carry">0</p></div>
+                <div class="glass-panel p-4"><p class="text-[9px] opacity-50 uppercase mb-1">ปีนี้</p><p class="text-lg font-bold" id="view-quota">0</p></div>
+                <div class="glass-panel p-4"><p class="text-[9px] opacity-50 uppercase mb-1">รวมสิทธิ์</p><p class="text-lg font-bold" id="view-total">0</p></div>
+                <div class="glass-panel p-4 bg-pink-500/5"><p class="text-[9px] text-pink-500 font-bold uppercase mb-1">ใช้แล้ว</p><p class="text-lg font-bold text-pink-500" id="view-used">0</p></div>
+            </div>
+        </section>
+
+        <!-- Admin Console Trigger -->
+        <div class="mt-12 text-center">
+            <button onclick="showAdminAuth()" class="opacity-20 hover:opacity-100 transition-opacity p-2 text-[9px] orbitron tracking-[0.4em]">
+                <i class="fas fa-lock mr-2"></i> ADMIN CONSOLE
+            </button>
+        </div>
+    </main>
+
+    <!-- Admin Authentication Modal (Keyboard Driven) -->
+    <div id="modal-auth" class="fixed inset-0 bg-slate-950/95 z-[9999] hidden items-center justify-center p-6" onclick="focusAdminInput()">
+        <div id="auth-card" class="w-full max-w-xs text-center glass-panel p-10">
+            <h3 class="orbitron text-[10px] tracking-widest mb-10 text-cyan-400">ENTER 6-DIGIT ADMIN PASSCODE</h3>
+            
+            <!-- Hidden Input to catch keyboard events -->
+            <input type="password" id="adminInput" maxlength="6" inputmode="numeric" class="admin-pin-input" oninput="handleAdminInput(this)">
+
+            <!-- Visual Representation of PIN -->
+            <div class="flex justify-center gap-4 mb-10">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+
+            <p class="text-[9px] opacity-30 orbitron">TYPE ON YOUR KEYBOARD</p>
+            <button onclick="hideAdminAuth()" class="mt-8 text-pink-500 text-[10px] orbitron tracking-widest">CANCEL</button>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div id="modal-admin" class="fixed inset-0 bg-slate-950 z-[10000] hidden overflow-y-auto p-6">
+        <div class="max-w-md mx-auto py-8">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl orbitron neon-text-yellow font-bold uppercase">Admin Console</h2>
+                <button onclick="closeAdmin()" class="text-3xl opacity-50">&times;</button>
+            </div>
+
+            <div class="glass-panel p-8 text-center border-2 border-dashed border-cyan-500/30 mb-6">
+                <i class="fas fa-cloud-upload-alt text-4xl text-cyan-400 mb-4"></i>
+                <h4 class="text-lg font-bold mb-4">อัปเดตข้อมูล (Excel)</h4>
+                <input type="file" id="xlsx-input" accept=".xlsx, .xls" class="hidden" onchange="readXlsx(this)">
+                <button onclick="document.getElementById('xlsx-input').click()" class="w-full py-4 bg-cyan-600 rounded-2xl font-bold orbitron shadow-lg">
+                    SELECT EXCEL FILE
+                </button>
+                <div id="up-status" class="mt-4 text-[10px] orbitron font-bold"></div>
+            </div>
+
+            <div class="glass-panel p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-xs opacity-50">STATUS:</span>
+                    <span class="text-green-400 text-xs font-bold">ACTIVE DATABASE</span>
+                </div>
+                <div class="flex justify-between items-center mb-8">
+                    <span class="text-xs opacity-50">RECORDS:</span>
+                    <span id="data-count" class="text-xl font-bold orbitron">0</span>
+                </div>
+                <button onclick="clearData()" class="w-full py-3 border border-pink-500/30 text-pink-500 rounded-xl text-[10px] orbitron font-bold">
+                    PURGE ALL RECORDS
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        const adminPasscode = "1234"; // รหัสผ่านเริ่มต้น
-        let currentPasscode = "";
+        const PIN = "123456"; // Default Admin Pin
+        let db = [];
 
-        const initialData = [
-            { id: '33326', name: 'นายถาวร เสียงล้ำเลิศ', pos: 'ผู้ช่วยหัวหน้าแผนก', dept: 'แผนกโรงพักสินค้า 9', carry: 15, quota: 15, total: 30, used: 0, remain: 30 },
-            { id: '34195', name: 'นายพัชรินทร์ สุขบุญ', pos: 'พนักงานการสินค้า 6 (ปรับ)', dept: 'หมวดจัดเรียง แผนกโรงพักสินค้า 9', carry: 11, quota: 15, total: 26, used: 4, remain: 22 },
-            { id: '34214', name: 'นายราชูน ศรีพันธ์', pos: 'พนักงานการสินค้า 6 (เจ้าหน้าที่อาวุโส)', dept: 'แผนกโรงพักสินค้า 9', carry: 15, quota: 15, total: 30, used: 15, remain: 15 },
-            { id: '60139', name: 'นายวสันต์ แก้วน้อย', pos: 'พนักงานการสินค้า 6', dept: 'หมวดตรวจสอบ แผนกโรงพักสินค้า 9', carry: 10, quota: 10, total: 20, used: 11, remain: 9 },
-            { id: '60140', name: 'นายพงษ์ศักดิ์ สังข์ศิริ', pos: 'พนักงานการสินค้า 5', dept: 'หมวดจัดเรียง แผนกโรงพักสินค้า 9', carry: 0, quota: 10, total: 10, used: 3, remain: 7 },
-            { id: '60152', name: 'นายปริญญา ชมเสน', pos: 'พนักงานการสินค้า 5', dept: 'หมวดจัดเรียง แผนกโรงพักสินค้า 9', carry: 4, quota: 10, total: 14, used: 7, remain: 7 },
-            { id: '61047', name: 'นายเอกพงษ์ ฤทธิ์กล้า', pos: 'พนักงานการสินค้า 6', dept: 'หมวดสำรวจสินค้า แผนกโรงพักสินค้า 9', carry: 0, quota: 10, total: 10, used: 0, remain: 10 }
-        ];
-
-        let employeeData = JSON.parse(localStorage.getItem('portLeaveData')) || initialData;
-        updateAdminStats();
-
-        // --- AUTH LOGIC ---
-        function requestAdminAccess() {
-            currentPasscode = "";
-            updatePasscodeUI();
-            toggleAdminAuth(true);
-        }
-
-        function toggleAdminAuth(show) {
-            document.getElementById('adminAuth').style.display = show ? 'flex' : 'none';
-        }
-
-        function enterDigit(digit) {
-            if (currentPasscode.length < 4) {
-                currentPasscode += digit;
-                updatePasscodeUI();
-                
-                if (currentPasscode.length === 4) {
-                    setTimeout(validatePasscode, 300);
-                }
-            }
-        }
-
-        function clearPasscode() {
-            currentPasscode = currentPasscode.slice(0, -1);
-            updatePasscodeUI();
-        }
-
-        function updatePasscodeUI() {
-            const dots = document.querySelectorAll('.passcode-dot');
-            dots.forEach((dot, i) => {
-                if (i < currentPasscode.length) dot.classList.add('active');
-                else dot.classList.remove('active');
-            });
-        }
-
-        function validatePasscode() {
-            if (currentPasscode === adminPasscode) {
-                toggleAdminAuth(false);
-                toggleAdminPanel(true);
+        window.onload = () => {
+            const saved = localStorage.getItem('port_leave_db');
+            if (saved) {
+                db = JSON.parse(saved);
             } else {
-                const container = document.querySelector('#adminAuth .text-center');
-                container.classList.add('animate-shake');
-                setTimeout(() => {
-                    container.classList.remove('animate-shake');
-                    currentPasscode = "";
-                    updatePasscodeUI();
-                }, 400);
-                if (window.navigator.vibrate) window.navigator.vibrate([100, 50, 100]);
+                // Initial Sample Data
+                db = [{ id: '33326', name: 'นายถาวร เสียงล้ำเลิศ', pos: 'ผู้ช่วยหัวหน้าแผนก', dept: 'แผนกโรงพักสินค้า 9', carry: 15, quota: 15, total: 30, used: 0, remain: 30 }];
             }
-        }
+            updateCountDisplay();
+        };
 
-        // --- ADMIN PANEL LOGIC ---
-        function toggleAdminPanel(show) {
-            document.getElementById('adminPanel').style.display = show ? 'block' : 'none';
-            if(show) updateAdminStats();
-        }
+        function doSearch() {
+            const val = document.getElementById('empInput').value.trim();
+            const err = document.getElementById('login-err');
+            const emp = db.find(e => String(e.id) === val);
 
-        function updateAdminStats() {
-            document.getElementById('admin-count').textContent = employeeData.length;
-        }
-
-        // --- EMPLOYEE SEARCH LOGIC ---
-        function searchEmployee() {
-            const inputVal = document.getElementById('empIdInput').value.trim();
-            if(!inputVal) return;
-            
-            const employee = employeeData.find(e => String(e.id).trim() === inputVal);
-
-            if (employee) {
-                document.getElementById('errorMsg').classList.add('hidden');
-                showDashboard(employee);
-                if (window.navigator.vibrate) window.navigator.vibrate(50);
+            if (emp) {
+                err.classList.add('hidden');
+                showDashboard(emp);
             } else {
-                document.getElementById('errorMsg').classList.remove('hidden');
-                const loginBox = document.getElementById('loginSection');
-                loginBox.classList.add('animate-shake');
-                setTimeout(() => loginBox.classList.remove('animate-shake'), 400);
+                err.classList.remove('hidden');
+                document.getElementById('ui-login').classList.add('shake');
+                setTimeout(() => document.getElementById('ui-login').classList.remove('shake'), 400);
             }
         }
 
         function showDashboard(emp) {
-            document.getElementById('loginSection').style.display = 'none';
-            const dash = document.getElementById('dashboard');
-            dash.style.display = 'block';
+            document.getElementById('ui-login').classList.add('hidden');
+            document.getElementById('ui-dash').classList.remove('hidden');
+            
+            document.getElementById('view-name').innerText = emp.name;
+            document.getElementById('view-pos').innerText = emp.pos;
+            document.getElementById('view-id').innerText = `ID: ${emp.id}`;
+            document.getElementById('view-dept').innerText = emp.dept;
+            document.getElementById('view-remain').innerText = emp.remain;
+            document.getElementById('view-carry').innerText = emp.carry;
+            document.getElementById('view-quota').innerText = emp.quota;
+            document.getElementById('view-total').innerText = emp.total;
+            document.getElementById('view-used').innerText = emp.used;
 
-            document.getElementById('display-name').textContent = emp.name;
-            document.getElementById('display-pos').textContent = emp.pos;
-            document.getElementById('display-id').textContent = `ID: ${emp.id}`;
-            document.getElementById('display-dept').textContent = emp.dept;
-            
-            document.getElementById('display-remain').textContent = emp.remain;
-            document.getElementById('display-quota').textContent = emp.quota;
-            document.getElementById('display-carry').textContent = emp.carry;
-            document.getElementById('display-total').textContent = emp.total;
-            document.getElementById('display-used').textContent = emp.used;
-            
-            const circle = document.getElementById('main-circle');
-            const circumference = 628.3; 
-            const percent = emp.total > 0 ? (emp.remain / emp.total) : 0;
-            const offset = circumference - (percent * circumference);
-            
-            circle.style.strokeDashoffset = circumference;
-            setTimeout(() => {
-                circle.style.strokeDashoffset = offset;
-            }, 300);
+            const ring = document.getElementById('ring-remain');
+            const pct = emp.total > 0 ? (emp.remain / emp.total) : 0;
+            ring.style.strokeDashoffset = 440 - (pct * 440);
         }
 
-        function logout() {
-            document.getElementById('loginSection').style.display = 'block';
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('empIdInput').value = '';
+        function doLogout() {
+            document.getElementById('ui-dash').classList.add('hidden');
+            document.getElementById('ui-login').classList.remove('hidden');
+            document.getElementById('empInput').value = "";
+            document.getElementById('ring-remain').style.strokeDashoffset = 440;
         }
 
-        // --- EXCEL LOGIC ---
-        function cleanVal(val) {
-            if (val === undefined || val === null || val === '-') return 0;
-            if (typeof val === 'string') {
-                const numeric = val.replace(/[^0-9.]/g, '');
-                return numeric ? parseInt(numeric) : 0;
+        // --- ADMIN AUTH LOGIC (KEYBOARD DRIVEN) ---
+        function showAdminAuth() {
+            const input = document.getElementById('adminInput');
+            input.value = "";
+            updateAdminDots("");
+            document.getElementById('modal-auth').style.display = 'flex';
+            setTimeout(() => input.focus(), 100);
+        }
+
+        function hideAdminAuth() {
+            document.getElementById('modal-auth').style.display = 'none';
+        }
+
+        function focusAdminInput() {
+            document.getElementById('adminInput').focus();
+        }
+
+        function handleAdminInput(el) {
+            const val = el.value;
+            updateAdminDots(val);
+
+            if (val.length === 6) {
+                if (val === PIN) {
+                    setTimeout(() => {
+                        hideAdminAuth();
+                        document.getElementById('modal-admin').style.display = 'block';
+                    }, 200);
+                } else {
+                    document.getElementById('auth-card').classList.add('shake');
+                    setTimeout(() => {
+                        document.getElementById('auth-card').classList.remove('shake');
+                        el.value = "";
+                        updateAdminDots("");
+                    }, 400);
+                }
             }
-            return parseInt(val) || 0;
         }
 
-        function handleFile(input) {
+        function updateAdminDots(val) {
+            const dots = document.querySelectorAll('#modal-auth .dot');
+            dots.forEach((d, i) => d.classList.toggle('filled', i < val.length));
+        }
+
+        // --- DATABASE LOGIC ---
+        function closeAdmin() { document.getElementById('modal-admin').style.display = 'none'; }
+        function updateCountDisplay() { document.getElementById('data-count').innerText = db.length; }
+
+        function readXlsx(input) {
             const file = input.files[0];
             if (!file) return;
-
-            document.getElementById('fileNameDisplay').textContent = "Analyzing: " + file.name;
+            const status = document.getElementById('up-status');
+            status.innerHTML = `<span class="text-cyan-400"><i class="fas fa-spinner fa-spin mr-2"></i>READING EXCEL...</span>`;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = (e) => {
                 try {
                     const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    
-                    let startRow = -1;
-                    for(let i=0; i<json.length; i++) {
-                        if(json[i].includes('รหัสพนักงาน')) {
-                            startRow = i + 1;
-                            break;
+                    const wb = XLSX.read(data, { type: 'array' });
+                    const sh = wb.Sheets[wb.SheetNames[0]];
+                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
+
+                    let startIdx = -1;
+                    for(let i=0; i<raw.length; i++) {
+                        if(raw[i].some(cell => String(cell).includes('รหัสพนักงาน'))) {
+                            startIdx = i + 1; break;
                         }
                     }
 
-                    if (startRow === -1) throw new Error("หัวตาราง 'รหัสพนักงาน' ไม่ถูกต้อง");
+                    if (startIdx === -1) throw new Error("Header Not Found");
 
-                    const newEmployees = [];
-                    for(let i = startRow; i < json.length; i++) {
-                        const row = json[i];
-                        if (!row[0]) continue;
+                    const num = (v) => {
+                        if (!v || v === '-') return 0;
+                        return parseInt(String(v).replace(/[^0-9.]/g, '')) || 0;
+                    };
 
-                        newEmployees.push({
-                            id: String(row[0]).trim(),
-                            name: String(row[1] || '').trim(),
-                            pos: String(row[2] || '').trim(),
-                            dept: String(row[3] || '').trim(),
-                            carry: cleanVal(row[6]),
-                            quota: cleanVal(row[7]),
-                            total: cleanVal(row[9]),
-                            used: cleanVal(row[10]),
-                            remain: cleanVal(row[11])
-                        });
-                    }
+                    db = raw.slice(startIdx).filter(r => r[0]).map(r => ({
+                        id: String(r[0]).trim(),
+                        name: r[1] || 'N/A',
+                        pos: r[2] || 'N/A',
+                        dept: r[3] || 'N/A',
+                        carry: num(r[6]),
+                        quota: num(r[7]),
+                        total: num(r[9]),
+                        used: num(r[10]),
+                        remain: num(r[11])
+                    }));
 
-                    if (newEmployees.length > 0) {
-                        employeeData = newEmployees;
-                        localStorage.setItem('portLeaveData', JSON.stringify(employeeData));
-                        updateAdminStats();
-                        alert('Data Sync Complete! (' + newEmployees.length + ' records)');
-                        document.getElementById('fileNameDisplay').textContent = "Upload Success";
-                    }
+                    localStorage.setItem('port_leave_db', JSON.stringify(db));
+                    updateCountDisplay();
+                    status.innerHTML = `<span class="text-green-400">DATABASE UPDATED SUCCESSFULLY</span>`;
+                    setTimeout(() => status.innerText = "", 3000);
                 } catch (err) {
-                    alert('Error: ' + err.message);
-                    document.getElementById('fileNameDisplay').textContent = "Upload Failed";
+                    status.innerHTML = `<span class="text-pink-500">ERROR: ${err.message}</span>`;
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        function clearDatabase() {
-            if(confirm('ต้องการล้างข้อมูลทั้งหมด? ข้อมูลปัจจุบันจะถูกลบและแทนที่ด้วยค่าเริ่มต้นโรงงาน')) {
-                employeeData = initialData;
-                localStorage.removeItem('portLeaveData');
-                updateAdminStats();
-                alert('Database Reset to Factory Settings');
+        function clearData() {
+            if (confirm("ต้องการล้างข้อมูลทั้งหมด?")) {
+                localStorage.removeItem('port_leave_db');
+                location.reload();
             }
         }
     </script>
